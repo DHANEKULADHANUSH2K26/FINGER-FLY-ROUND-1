@@ -50,13 +50,33 @@
   .btn-start::before { background:var(--magenta); }
   .btn-start:hover { color:#000; box-shadow:0 0 30px var(--magenta); }
 
+  /* ── NAME ENTRY SCREEN ── */
+  #nameScreen { text-align:center; padding:40px 20px; }
+  .name-icon { font-size:3.5rem; display:block; margin-bottom:16px; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+  .name-title { font-family:'Orbitron',monospace; font-size:1.3rem; color:var(--cyan); letter-spacing:4px; margin-bottom:6px; }
+  .name-sub { font-size:0.78rem; color:#4a6a8a; letter-spacing:2px; margin-bottom:28px; }
+  .name-input-wrap { position:relative; max-width:420px; margin:0 auto 10px; }
+  .name-input-wrap label { display:block; font-size:0.7rem; color:#4a6a8a; letter-spacing:3px; margin-bottom:8px; text-align:left; }
+  #studentName { text-transform:uppercase; letter-spacing:3px; font-size:1rem; text-align:center; }
+  #nameError { font-size:0.8rem; color:#ff3355; text-shadow:0 0 8px #ff3355; min-height:22px; margin-bottom:14px; letter-spacing:1px; font-family:'Orbitron',monospace; }
+
+  /* ── NO ATTEMPTS SCREEN ── */
+  #noAttemptsScreen { text-align:center; padding:50px 20px; display:none; }
+  .blocked-icon { font-size:4rem; display:block; margin-bottom:20px; }
+  .blocked-title { font-family:'Orbitron',monospace; font-size:1.4rem; color:#ff3355; letter-spacing:4px; text-shadow:0 0 20px #ff3355; margin-bottom:10px; }
+  .blocked-name { font-family:'Orbitron',monospace; font-size:1rem; color:var(--yellow); letter-spacing:3px; margin-bottom:16px; }
+  .blocked-msg { font-size:0.8rem; color:#4a6a8a; letter-spacing:2px; line-height:1.8; }
+
+  /* ── START SCREEN ── */
   #startScreen { text-align:center; padding:40px 20px; }
   .start-icon { font-size:4rem; display:block; margin-bottom:20px; animation:pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
   .start-levels { display:flex; gap:12px; justify-content:center; margin:24px 0; flex-wrap:wrap; }
   .start-level-card { background:#030810; border:1px solid #1a3050; border-radius:8px; padding:12px 16px; font-size:0.75rem; color:#6080a0; text-align:left; min-width:155px; }
   .start-level-card strong { display:block; color:var(--cyan); font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:2px; margin-bottom:4px; }
+  .welcome-name { font-family:'Orbitron',monospace; font-size:0.85rem; color:var(--green); letter-spacing:3px; margin-bottom:16px; text-shadow:0 0 10px var(--green); }
 
+  /* ── GAME AREA ── */
   #gameArea { position:relative; width:100%; height:300px; background:#020c1a; border:1px solid #1a3050; border-radius:8px; overflow:hidden; margin-bottom:14px; }
   #dangerLine { position:absolute; bottom:0; left:0; right:0; height:36px; background:linear-gradient(transparent,rgba(255,0,80,0.2)); border-top:1px dashed rgba(255,50,50,0.5); display:flex; align-items:center; justify-content:center; color:rgba(255,80,80,0.55); font-size:0.6rem; letter-spacing:4px; pointer-events:none; z-index:5; }
   .falling-word { position:absolute; font-family:'Share Tech Mono',monospace; font-size:15px; padding:4px 10px; border-radius:4px; border:1px solid; white-space:nowrap; pointer-events:none; text-shadow:0 0 8px currentColor; }
@@ -103,9 +123,31 @@
 
   <div class="panel">
 
-    <!-- START -->
-    <div id="startScreen">
+    <!-- NAME ENTRY -->
+    <div id="nameScreen">
+      <span class="name-icon">🎓</span>
+      <p class="name-title">IDENTIFY YOURSELF</p>
+      <p class="name-sub">ENTER YOUR FULL NAME WITH INITIAL TO PROCEED</p>
+      <div class="name-input-wrap">
+        <label>FULL NAME WITH INITIAL (e.g. A. DHANUSH KUMAR)</label>
+        <input type="text" id="studentName" placeholder="e.g. A. DHANUSH KUMAR" autocomplete="off" spellcheck="false">
+      </div>
+      <div id="nameError"></div>
+      <button class="btn btn-start" onclick="submitName()">PROCEED →</button>
+    </div>
+
+    <!-- NO ATTEMPTS LEFT -->
+    <div id="noAttemptsScreen">
+      <span class="blocked-icon">🚫</span>
+      <p class="blocked-title">ACCESS DENIED</p>
+      <p class="blocked-name" id="blockedNameDisplay"></p>
+      <p class="blocked-msg">You have already used your one attempt.<br>No further attempts are allowed.<br><br>Contact your faculty if you believe this is an error.</p>
+    </div>
+
+    <!-- START SCREEN -->
+    <div id="startScreen" class="hidden">
       <span class="start-icon">🖥️</span>
+      <p class="welcome-name" id="welcomeName"></p>
       <p style="color:#6080a0;font-size:0.85rem;letter-spacing:2px;margin-bottom:6px;">ARE YOU READY TO</p>
       <p style="color:var(--cyan);font-family:'Orbitron',monospace;font-size:1.4rem;letter-spacing:4px;margin-bottom:20px;">TEST YOUR SKILLS?</p>
       <div class="start-levels">
@@ -195,6 +237,55 @@ document.addEventListener('cut',  e=>{ e.preventDefault(); showNoCopy(); });
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('keydown',e=>{ if(e.ctrlKey||e.metaKey){ if(['v','c','x'].includes(e.key.toLowerCase())){ e.preventDefault(); showNoCopy(); } } });
 
+// ── NAME & ATTEMPT CHECK ──────────────────────────────────
+const STORAGE_KEY = 'fingerfly_used_names';
+
+function getUsedNames(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); } catch(e){ return []; }
+}
+function saveUsedName(name){
+  const names = getUsedNames();
+  names.push(name);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(names));
+}
+function isNameUsed(name){
+  return getUsedNames().some(n => n.toLowerCase()===name.toLowerCase());
+}
+
+let currentStudentName = '';
+
+function submitName(){
+  const raw = document.getElementById('studentName').value.trim();
+  const errEl = document.getElementById('nameError');
+
+  if(!raw){ errEl.textContent='⚠ Please enter your full name with initial.'; return; }
+
+  // Must have at least 2 words and contain a period (initial check)
+  const words = raw.split(/\s+/);
+  if(words.length < 2 || !raw.includes('.')){ errEl.textContent='⚠ Format: Initial. Firstname Lastname (e.g. A. Dhanush Kumar)'; return; }
+
+  const normalizedName = raw.toUpperCase();
+
+  if(isNameUsed(normalizedName)){
+    // Block — show no attempts screen
+    document.getElementById('nameScreen').style.display='none';
+    document.getElementById('blockedNameDisplay').textContent=normalizedName;
+    document.getElementById('noAttemptsScreen').style.display='block';
+    return;
+  }
+
+  // Valid new name — save and proceed
+  currentStudentName = normalizedName;
+  saveUsedName(normalizedName);
+
+  document.getElementById('nameScreen').style.display='none';
+  document.getElementById('welcomeName').textContent='WELCOME, '+currentStudentName;
+  show('startScreen');
+}
+
+// Allow Enter key on name input
+document.getElementById('studentName').addEventListener('keydown',function(e){ if(e.key==='Enter') submitName(); });
+
 // ── STATE ─────────────────────────────────────────────────
 let gameOver=false, activeIntervals=[], gameStartTime=null;
 function setDot(n,s){ document.getElementById('dot'+n).className='level-dot '+s; }
@@ -231,7 +322,7 @@ function startCountdown(totalSec,spanId,barId,onExpire){
 // ── START ─────────────────────────────────────────────────
 function startGame(){
   hide('startScreen'); show('round1'); setDot(1,'active');
-  gameStartTime = Date.now();
+  gameStartTime=Date.now();
   startCountdown(120,'timer1','bar1',()=>disqualify('Time ran out on Level 1'));
   setTimeout(()=>document.getElementById('typing1').focus(),100);
 }
@@ -248,13 +339,19 @@ function checkRound1(){
 }
 
 // ── LEVEL 2: CODE RAIN ────────────────────────────────────
-const rainWords=["algorithm","compile","debug","loop","array","variable","object","binary","function","class"];
+// 10 unique words — shuffled so they fall in random order with NO repeats
+const allRainWords=["algorithm","compile","debug","loop","array","variable","object","binary","function","class"];
 const wordColors=['0,245,255','255,0,170','0,255,136','255,230,0','100,150,255'];
-let activeWords=[], spawnInterval, rainCdInterval, rafId, rainScore=0, rainTimeLeft=30, lastTS=null;
+let activeWords=[], spawnInterval, rainCdInterval, rafId;
+let rainScore=0, rainTimeLeft=30, lastTS=null;
+let rainWordQueue=[];  // shuffled queue — no repeats
+
+function shuffleArr(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]; } return b; }
 
 function startCodeRain(){
   show('round2'); setDot(2,'active');
   rainScore=0; rainTimeLeft=30; activeWords=[];
+  rainWordQueue=shuffleArr(allRainWords); // each word appears exactly once
   document.getElementById('gameArea').innerHTML='<div id="dangerLine">— DANGER ZONE —</div>';
   document.getElementById('rainScore').textContent='0';
   document.getElementById('rainTimer').textContent='30';
@@ -284,15 +381,18 @@ function startCodeRain(){
     }
   },1000);
 }
+
 function spawnWord(){
   if(gameOver) return;
-  const word=rainWords[Math.floor(Math.random()*rainWords.length)];
+  if(rainWordQueue.length===0) return; // all 10 words already spawned — no more
+  const word=rainWordQueue.shift(); // take next unique word from queue
   const color=wordColors[Math.floor(Math.random()*wordColors.length)];
   const div=document.createElement('div'); div.className='falling-word'; div.textContent=word;
   div.style.color=`rgb(${color})`; div.style.borderColor=`rgba(${color},0.4)`; div.style.background=`rgba(${color},0.07)`;
   div.style.left=(Math.random()*73+2)+'%'; div.style.top='0px'; div._top=0;
   document.getElementById('gameArea').appendChild(div); activeWords.push({div,word});
 }
+
 function moveWords(dt){
   const ga=document.getElementById('gameArea'); if(!ga) return;
   const danger=ga.clientHeight-36;
@@ -302,6 +402,7 @@ function moveWords(dt){
     if(obj.div._top+obj.div.offsetHeight>=danger){ clearInterval(spawnInterval); clearInterval(rainCdInterval); cancelAnimationFrame(rafId); disqualify('"'+obj.word+'" reached the ground!'); return; }
   }
 }
+
 document.getElementById('rainInput').addEventListener('keydown',function(e){
   if(e.key==='Enter'){
     if(gameOver) return;
@@ -341,15 +442,15 @@ function checkRound4(){
   const parts=document.getElementById('typing4').value.split(',').map(s=>s.trim());
   if(parts[0]==='main'&&parts[1]==='<='&&parts[2]==='i'){
     clearAll(); setDot(4,'done');
-    const totalMs = Date.now() - gameStartTime;
-    const totalSec = Math.floor(totalMs/1000);
-    const mins = Math.floor(totalSec/60);
-    const secs = totalSec % 60;
-    const timeStr = mins > 0 ? `${mins} min ${secs} sec` : `${secs} sec`;
+    const totalMs=Date.now()-gameStartTime;
+    const totalSec=Math.floor(totalMs/1000);
+    const mins=Math.floor(totalSec/60), secs=totalSec%60;
+    const timeStr=mins>0?`${mins} min ${secs} sec`:`${secs} sec`;
     const w=document.createElement('div');
     w.innerHTML=`<div style="margin-top:20px;text-align:center;font-family:'Orbitron',monospace;color:var(--green)">
       <div style="font-size:3rem;margin-bottom:10px">🏆</div>
-      <div style="font-size:1.1rem;letter-spacing:4px;text-shadow:0 0 20px var(--green);margin-bottom:14px">ALL LEVELS COMPLETE!</div>
+      <div style="font-size:1.1rem;letter-spacing:4px;text-shadow:0 0 20px var(--green);margin-bottom:6px">ALL LEVELS COMPLETE!</div>
+      <div style="font-size:0.8rem;color:var(--cyan);letter-spacing:2px;margin-bottom:14px">${currentStudentName}</div>
       <div style="font-size:0.75rem;letter-spacing:3px;color:#4a6a8a;margin-bottom:6px">TOTAL TIME</div>
       <div style="font-size:1.6rem;letter-spacing:4px;color:var(--yellow);text-shadow:0 0 15px var(--yellow)">${timeStr}</div>
     </div>`;
