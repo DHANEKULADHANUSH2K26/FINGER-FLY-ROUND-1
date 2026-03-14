@@ -408,7 +408,7 @@ async function checkNameInSheet(name){
 }
 
 async function saveToSheet(data){
-  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbxqJCTolujH6WZUIURpQ-rH7ys5Li4bK-ZDluC31j7ncTGhkpd7TZR6GfdEYeAUGh-teQ/exec'){
+  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
     console.warn('No Apps Script URL configured — data not saved.');
     return false;
   }
@@ -525,6 +525,14 @@ function submitL1(){
 function dq(msg){
   clearInterval(S.l1Timer);clearInterval(S.l2Timer);clearInterval(S.l2SpawnTimer);cancelAnimationFrame(S.l2AnimFrame);
   $id('dq-msg').textContent=msg;show('dq');
+  if(participant.name){
+    saveToSheet({
+      name:   participant.name,
+      clg:    participant.clg,
+      branch: participant.branch,
+      total:  'Disqualified'
+    });
+  }
 }
 
 /* ══ LEVEL 2 — WORD RAIN ══ */
