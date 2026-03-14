@@ -394,32 +394,38 @@ function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$id('screen-'+id).classList.add('active');}
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
+/* ══ GOOGLE SHEETS CONFIG ══ */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqJCTolujH6WZUIURpQ-rH7ys5Li4bK-ZDluC31j7ncTGhkpd7TZR6GfdEYeAUGh-teQ/exec";
+
 /* ══ GOOGLE SHEETS ══ */
 async function checkNameInSheet(name){
-  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbxqJCTolujH6WZUIURpQ-rH7ys5Li4bK-ZDluC31j7ncTGhkpd7TZR6GfdEYeAUGh-teQ/exec') return {exists:false};
+  if(!APPS_SCRIPT_URL) return {exists:false};
+
   try{
-    const url=`${APPS_SCRIPT_URL}?action=check&name=${encodeURIComponent(name)}`;
-    const res=await fetch(url);
+    const url = `${APPS_SCRIPT_URL}?action=check&name=${encodeURIComponent(name)}`;
+    const res = await fetch(url);
     return await res.json();
   }catch(e){
-    console.warn('Sheet check failed:',e);
+    console.warn('Sheet check failed:', e);
     return {exists:false};
   }
 }
-
 async function saveToSheet(data){
-  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbxqJCTolujH6WZUIURpQ-rH7ys5Li4bK-ZDluC31j7ncTGhkpd7TZR6GfdEYeAUGh-teQ/exec'){
+  if(!APPS_SCRIPT_URL){
     console.warn('No Apps Script URL configured — data not saved.');
     return false;
   }
+
   try{
-    const params=new URLSearchParams({action:'save',...data});
-    const url=`${APPS_SCRIPT_URL}?${params.toString()}`;
-    const res=await fetch(url);
-    const json=await res.json();
-    return json.success===true;
+    const params = new URLSearchParams({action:'save', ...data});
+    const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
+
+    const res = await fetch(url);
+    const json = await res.json();
+
+    return json.success === true;
   }catch(e){
-    console.warn('Sheet save failed:',e);
+    console.warn('Sheet save failed:', e);
     return false;
   }
 }
