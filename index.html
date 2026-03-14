@@ -194,7 +194,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <input type="text" id="inp-branch" class="field-inp" placeholder="Enter your branch / department" autocomplete="off" spellcheck="false"/>
       </div>
       <div id="details-err" style="color:var(--red);font-family:'Share Tech Mono',monospace;font-size:12px;min-height:18px;margin-bottom:16px;"></div>
-      <button class="btn btn-c" id="proceed-btn" onclick="submitDetails()">Proceed to Challenge</button>
+      <button class="btn btn-c" id="proceed-btn" onclick="submitDetails()">
     </div>
   </div>
 
@@ -475,7 +475,7 @@ async function submitDetails(){
   participant={name,clg,branch};
   show('start');
 }
-window.submitDetails = submitDetails;
+document.getElementById("proceed-btn").addEventListener("click", submitDetails);
 
 /* ══ LEVEL 1 ══ */
 function startL1(){
