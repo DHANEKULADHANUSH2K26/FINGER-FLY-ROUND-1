@@ -411,19 +411,19 @@ async function checkNameInSheet(name){
   }
 }
 async function saveToSheet(data){
-  if(!APPS_SCRIPT_URL){
-    console.warn('No Apps Script URL configured — data not saved.');
-    return false;
-  }
 
   try{
     const params = new URLSearchParams({action:'save', ...data});
     const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
 
-    const res = await fetch(url);
-    const json = await res.json();
+    const res = await fetch(url, {
+      method: "GET",
+      mode: "cors"
+    });
 
+    const json = await res.json();
     return json.success === true;
+
   }catch(e){
     console.warn('Sheet save failed:', e);
     return false;
@@ -667,16 +667,17 @@ async function showResults(){
   show('results');
 
   // Show saving overlay
-  $id('saving-overlay').style.display='flex';
-  $id('save-status').textContent='';
+$id('saving-overlay').style.display='flex';
+$id('save-status').textContent='';
 
-  const saved=await saveToSheet({
-    name:   participant.name,
-    clg:    participant.clg,
-    branch: participant.branch,
-    total:  fmt(tot)
-  });
+const saved = await saveToSheet({
+  name: participant.name,
+  college: participant.clg,
+  branch: participant.branch,
+  total: fmt(tot)
+});
 
+$id('saving-overlay').style.display='none';
   $id('saving-overlay').style.display='none';
 
   if(saved){
