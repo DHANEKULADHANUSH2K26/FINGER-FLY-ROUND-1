@@ -446,7 +446,7 @@ function toggleCheck(){
 
 async function submitDetails(){
   const name=$id('inp-name').value.trim();
-  const clg=$id('inp-clg').value.trim();
+  const clg=$id('inp-college').value.trim();
   const branch=$id('inp-branch').value.trim();
   const err=$id('details-err');
 
@@ -476,6 +476,7 @@ async function submitDetails(){
   participant={name,clg,branch};
   show('start');
 }
+window.submitDetails = submitDetails;
 
 /* ══ LEVEL 1 ══ */
 function startL1(){
