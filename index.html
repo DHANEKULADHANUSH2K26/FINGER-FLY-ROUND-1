@@ -396,7 +396,7 @@ function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Mat
 
 /* ══ GOOGLE SHEETS ══ */
 async function checkNameInSheet(name){
-  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE') return {exists:false};
+  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbxqJCTolujH6WZUIURpQ-rH7ys5Li4bK-ZDluC31j7ncTGhkpd7TZR6GfdEYeAUGh-teQ/exec') return {exists:false};
   try{
     const url=`${APPS_SCRIPT_URL}?action=check&name=${encodeURIComponent(name)}`;
     const res=await fetch(url);
@@ -408,7 +408,7 @@ async function checkNameInSheet(name){
 }
 
 async function saveToSheet(data){
-  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
+  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbxqJCTolujH6WZUIURpQ-rH7ys5Li4bK-ZDluC31j7ncTGhkpd7TZR6GfdEYeAUGh-teQ/exec'){
     console.warn('No Apps Script URL configured — data not saved.');
     return false;
   }
